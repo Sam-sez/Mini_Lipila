@@ -6,6 +6,7 @@ namespace MiniLipila.Modules.Endpoints;
 
 public class CreateMerchantRequest
 {
+    public string Name { get; set; } = string.Empty;
     public string AccountNumber { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
     public List<decimal> Wallets { get; set; } = new();
@@ -14,6 +15,7 @@ public class CreateMerchantRequest
 public class CreateMerchantResponse
 {
     public Guid Id { get; set; }
+    public string Name { get; set; } = string.Empty;
     public string AccountNumber { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
     public List<WalletResponse> Wallets { get; set; } = new();
@@ -32,6 +34,7 @@ public class CreateMerchantEndpoint(AppDbContext db) : Endpoint<CreateMerchantRe
         var merchant = new Merchant
         {
             Id = Guid.NewGuid(),
+            Name = req.Name,
             AccountNumber = req.AccountNumber,
             Email = req.Email,
             Wallets = req.Wallets
@@ -45,6 +48,7 @@ public class CreateMerchantEndpoint(AppDbContext db) : Endpoint<CreateMerchantRe
         var response = new CreateMerchantResponse
         {
             Id = merchant.Id,
+            Name = merchant.Name,
             AccountNumber = merchant.AccountNumber,
             Email = merchant.Email,
             Wallets = merchant.Wallets
