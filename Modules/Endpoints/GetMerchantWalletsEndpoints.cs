@@ -9,12 +9,22 @@ public class WalletResponse
     public Guid Id { get; set; }
     public decimal Balance { get; set; }
 }
+public class WalletRequest
+{
+  
+    public decimal Balance { get; set; }
+}
 
 public class GetMerchantWalletsEndpoint(AppDbContext db) : EndpointWithoutRequest<List<WalletResponse>>
 {
     public override void Configure()
     {
         Get("/merchants/{id}/wallets");
+        Summary(s =>
+        {
+            s.Description = "`this fetches the wallets under this merchant`";
+            s.Summary = "Fetch all wallets of merchant";
+        });
         AllowAnonymous();
     }
 

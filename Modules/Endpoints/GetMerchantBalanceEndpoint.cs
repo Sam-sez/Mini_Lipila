@@ -16,6 +16,11 @@ public class GetMerchantBalanceEndpoint(AppDbContext db) : EndpointWithoutReques
     public override void Configure()
     {
         Get("/merchants/{id}/balance");
+        Summary(s =>
+        {
+            s.Description = "`this fetches the balance of this merchant`";
+            s.Summary = "Get a merchants balance";
+        });
         AllowAnonymous();
     }
 

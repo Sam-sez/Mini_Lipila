@@ -9,7 +9,6 @@ public class CreateMerchantRequest
     public string Name { get; set; } = string.Empty;
     public string AccountNumber { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
-    public List<decimal> Wallets { get; set; } = new();
 }
 
 public class CreateMerchantResponse
@@ -26,6 +25,11 @@ public class CreateMerchantEndpoint(AppDbContext db) : Endpoint<CreateMerchantRe
     public override void Configure()
     {
         Post("/merchants");
+        Summary(s =>
+        {
+            s.Description = "`this creates a new merchant with one empty wallet`";
+            s.Summary = "Creates a new merchant";
+        });
         AllowAnonymous();
     }
 
@@ -37,9 +41,7 @@ public class CreateMerchantEndpoint(AppDbContext db) : Endpoint<CreateMerchantRe
             Name = req.Name,
             AccountNumber = req.AccountNumber,
             Email = req.Email,
-            Wallets = req.Wallets
-                .Select(balance => new Wallet { Id = Guid.NewGuid(), Balance = balance })
-                .ToList()
+            Wallets = [new Wallet { Id = Guid.NewGuid(), Balance = 0 }]
         };
 
         db.Merchants.Add(merchant);

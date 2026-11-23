@@ -9,6 +9,11 @@ public class GetMerchantWalletEndpoint(AppDbContext db) : EndpointWithoutRequest
     public override void Configure()
     {
         Get("/merchants/{merchantId}/wallets/{walletId}");
+        Summary(s =>
+        {
+            s.Description = "`this fetches the wallet of this merchant`";
+            s.Summary = "Get a specific merchant wallet";
+        });
         AllowAnonymous();
     }
 

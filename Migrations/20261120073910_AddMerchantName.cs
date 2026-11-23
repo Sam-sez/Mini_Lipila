@@ -1,7 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
-
 namespace MiniLipila.Migrations
 {
     /// <inheritdoc />
