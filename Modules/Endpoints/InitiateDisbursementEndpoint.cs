@@ -2,6 +2,7 @@ using FastEndpoints;
 using Flurl;
 using Flurl.Http;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using MiniLipila.Data;
 using MiniLipila.Models;
 using MiniLipila.Models.Lipila;
@@ -10,7 +11,7 @@ using MiniLipila.Models.Responses;
 
 namespace MiniLipila.Modules.Endpoints;
 
-public class InitiateDisbursementEndpoint(AppDbContext db, IConfiguration config)
+public class InitiateDisbursementEndpoint(AppDbContext db, IConfiguration config, IOptions<LipilaSettings> lipila)
     : Endpoint<DisbursementReq, DisbursementResponse>
 {
     public override void Configure()
@@ -88,9 +89,9 @@ public class InitiateDisbursementEndpoint(AppDbContext db, IConfiguration config
         LipilaPaymentResponse result;
         try
         {
-            result = await "https://api.lipila.dev/api/v1/disbursements/mobile-money"
+            result = await $"{lipila.Value.BaseUrl}{lipila.Value.DisbursementPath}"
                 .WithHeader("x-api-key", apiKey)
-                .WithHeader("callbackUrl", "https://lipila.io/callback")
+                .WithHeader("callbackUrl", lipila.Value.CallbackUrl)
                 .WithHeader("accept", "application/json")
                 .PostJsonAsync(new
                 {

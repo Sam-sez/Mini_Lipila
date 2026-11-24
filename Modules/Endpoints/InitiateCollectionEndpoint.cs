@@ -3,6 +3,7 @@ using FastEndpoints;
 using Flurl;
 using Flurl.Http;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using MiniLipila.Data;
 using MiniLipila.Models;
 using MiniLipila.Models.Lipila;
@@ -11,7 +12,7 @@ using MiniLipila.Models.Responses;
 
 namespace MiniLipila.Modules.Endpoints;
 
-public class InitiateCollectionEndpoint(AppDbContext db, IConfiguration config) : Endpoint<CollectionReq, CollectionResponse>
+public class InitiateCollectionEndpoint(AppDbContext db, IConfiguration config, IOptions<LipilaSettings> lipila) : Endpoint<CollectionReq, CollectionResponse>
 {
     public override void Configure()
     {
@@ -96,7 +97,7 @@ public class InitiateCollectionEndpoint(AppDbContext db, IConfiguration config) 
         LipilaPaymentResponse result;
         try
         {
-            result = await "https://api.lipila.dev/api/v1/collections/mobile-money"
+            result = await $"{lipila.Value.BaseUrl}{lipila.Value.CollectionPath}"
                 .WithHeader("x-api-key", apiKey)
                 .PostJsonAsync(new PaymentRequest
                 {

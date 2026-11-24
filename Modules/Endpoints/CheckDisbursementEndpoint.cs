@@ -2,6 +2,7 @@ using FastEndpoints;
 using Flurl;
 using Flurl.Http;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using MiniLipila.Data;
 using MiniLipila.Models;
 using MiniLipila.Models.Lipila;
@@ -9,7 +10,7 @@ using MiniLipila.Models.Responses;
 
 namespace MiniLipila.Modules.Endpoints;
 
-public class CheckDisbursementEndpoint(AppDbContext db, IConfiguration config)
+public class CheckDisbursementEndpoint(AppDbContext db, IConfiguration config, IOptions<LipilaSettings> lipila)
     : EndpointWithoutRequest<DisbursementStatusResponse>
 {
     public override void Configure()
@@ -55,14 +56,14 @@ public class CheckDisbursementEndpoint(AppDbContext db, IConfiguration config)
         LipilaPaymentResponse result;
         try
         {
-            result = await "https://api.lipila.dev/api/v1/disbursements/check-status"
+            result = await $"{lipila.Value.BaseUrl}{lipila.Value.DisbursementStatusPath}"
                 .SetQueryParam("referenceId", payment.Id.ToString())
                 .WithHeader("x-api-key", apiKey)
                 .GetJsonAsync<LipilaPaymentResponse>();
         }
         catch (FlurlHttpException ex)
         {
-            AddError($"Lipila could not check the payout (status {ex.StatusCode}): {await ex.GetResponseStringAsync()}");
+            AddError($"Lipila could not check the payout (status {ex.StatusCode}): {ex.Message}");
             await Send.ErrorsAsync(502, ct);
             return;
         }

@@ -2,6 +2,7 @@ using FastEndpoints;
 using FastEndpoints.Swagger;
 using Microsoft.EntityFrameworkCore;
 using MiniLipila.Data;
+using MiniLipila.Models.Lipila;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -23,6 +24,9 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(
         builder.Configuration.GetConnectionString("DefaultConnection")
     ));
+
+// Read the "Lipila" section of appsettings into LipilaSettings
+builder.Services.Configure<LipilaSettings>(builder.Configuration.GetSection("Lipila"));
 
 var app = builder.Build();
 
