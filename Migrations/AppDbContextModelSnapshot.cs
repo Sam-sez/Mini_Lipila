@@ -53,7 +53,7 @@ namespace MiniLipila.Migrations
 
                     b.HasIndex("MerchantId");
 
-                    b.ToTable("Customers");
+                    b.ToTable("Customers", (string)null);
                 });
 
             modelBuilder.Entity("MiniLipila.Models.Merchant", b =>
@@ -82,7 +82,7 @@ namespace MiniLipila.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Merchants");
+                    b.ToTable("Merchants", (string)null);
                 });
 
             modelBuilder.Entity("MiniLipila.Models.Payment", b =>
@@ -111,11 +111,15 @@ namespace MiniLipila.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<int>("Status")
-                        .HasColumnType("integer");
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
 
-                    b.Property<int>("Type")
-                        .HasColumnType("integer");
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
 
                     b.Property<DateTimeOffset>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -125,7 +129,7 @@ namespace MiniLipila.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Payments");
+                    b.ToTable("Payments", (string)null);
                 });
 
             modelBuilder.Entity("MiniLipila.Models.Wallet", b =>
@@ -144,7 +148,7 @@ namespace MiniLipila.Migrations
 
                     b.HasIndex("MerchantId");
 
-                    b.ToTable("Wallets");
+                    b.ToTable("Wallets", (string)null);
                 });
 
             modelBuilder.Entity("MiniLipila.Models.Customer", b =>

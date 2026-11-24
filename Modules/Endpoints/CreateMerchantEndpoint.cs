@@ -1,24 +1,10 @@
 using FastEndpoints;
 using MiniLipila.Data;
 using MiniLipila.Models;
+using MiniLipila.Models.Requests;
+using MiniLipila.Models.Responses;
 
 namespace MiniLipila.Modules.Endpoints;
-
-public class CreateMerchantRequest
-{
-    public string Name { get; set; } = string.Empty;
-    public string AccountNumber { get; set; } = string.Empty;
-    public string Email { get; set; } = string.Empty;
-}
-
-public class CreateMerchantResponse
-{
-    public Guid Id { get; set; }
-    public string Name { get; set; } = string.Empty;
-    public string AccountNumber { get; set; } = string.Empty;
-    public string Email { get; set; } = string.Empty;
-    public List<WalletResponse> Wallets { get; set; } = new();
-}
 
 public class CreateMerchantEndpoint(AppDbContext db) : Endpoint<CreateMerchantRequest, CreateMerchantResponse>
 {

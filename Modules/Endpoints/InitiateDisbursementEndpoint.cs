@@ -4,35 +4,11 @@ using Flurl.Http;
 using Microsoft.EntityFrameworkCore;
 using MiniLipila.Data;
 using MiniLipila.Models;
+using MiniLipila.Models.Lipila;
+using MiniLipila.Models.Requests;
+using MiniLipila.Models.Responses;
 
 namespace MiniLipila.Modules.Endpoints;
-
-public class DisbursementReq
-{
-    public Guid MerchantId { get; set; }
-    public Guid WalletId { get; set; }
-    public decimal Amount { get; set; }
-    public string AccountNumber { get; set; } = string.Empty;
-    public string Narration { get; set; } = string.Empty;
-}
-
-public class DisbursementResponse
-{
-    public Guid PaymentId { get; set; }
-    public string Status { get; set; } = string.Empty;
-    public decimal Amount { get; set; }
-    public string Message { get; set; } = string.Empty;
-    public string Created { get; set; } = string.Empty;
-}
-
-public class LipilaDisbursementBody
-{
-    public string ReferenceId { get; set; } = string.Empty;
-    public decimal Amount { get; set; }
-    public string Narration { get; set; } = string.Empty;
-    public string AccountNumber { get; set; } = string.Empty;
-    public string Currency { get; set; } = string.Empty;
-}
 
 public class InitiateDisbursementEndpoint(AppDbContext db, IConfiguration config)
     : Endpoint<DisbursementReq, DisbursementResponse>

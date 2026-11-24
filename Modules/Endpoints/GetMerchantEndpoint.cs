@@ -2,6 +2,8 @@ using FastEndpoints;
 using Microsoft.EntityFrameworkCore;
 using MiniLipila.Data;
 using MiniLipila.Models;
+using MiniLipila.Models.Requests;
+using MiniLipila.Models.Responses;
 
 namespace MiniLipila.Modules.Endpoints;
 
@@ -45,9 +47,4 @@ public class GetMerchantEndpoint(AppDbContext db) : Endpoint<GetMerchantReq, Mer
 
         await Send.OkAsync(response, ct);
     }
-}
-
-public class GetMerchantReq
-{
-    public Guid Id { get; set; }
 }

@@ -5,6 +5,9 @@ using Flurl.Http;
 using Microsoft.EntityFrameworkCore;
 using MiniLipila.Data;
 using MiniLipila.Models;
+using MiniLipila.Models.Lipila;
+using MiniLipila.Models.Requests;
+using MiniLipila.Models.Responses;
 
 namespace MiniLipila.Modules.Endpoints;
 
@@ -130,81 +133,5 @@ public class InitiateCollectionEndpoint(AppDbContext db, IConfiguration config) 
                 : result.Message,
             Created = payment.CreatedAt.ToOffset(TimeSpan.FromHours(2)).ToString("dd MMM yyyy, HH:mm")
         }, 201, ct);
-    }
-}
-
-public class PaymentRequest
-{
-    public string ReferenceId { get; set; } = string.Empty;
-    public decimal Amount { get; set; }
-    public string Narration { get; set; } = string.Empty;
-    public string AccountNumber { get; set; } = string.Empty;
-    public string Currency { get; set; } = string.Empty;
-    public string Email { get; set; } = string.Empty;
-    public string ReferenceData { get; set; } = string.Empty;
-}
-
-public class LipilaPaymentResponse
-{
-    [JsonPropertyName("currency")]
-    public string Currency { get; set; } = "ZMW";
-
-    [JsonPropertyName("amount")]
-    public decimal Amount { get; set; }
-
-    [JsonPropertyName("accountNumber")]
-    public string AccountNumber { get; set; } = string.Empty;
-
-    [JsonPropertyName("status")]
-    public string Status { get; set; } = string.Empty;
-
-    [JsonPropertyName("paymentType")]
-    public string PaymentType { get; set; } = string.Empty;
-
-    [JsonPropertyName("ipAddress")]
-    public string IpAddress { get; set; } = string.Empty;
-
-    [JsonPropertyName("cardRedirectionUrl")]
-    public string? CardRedirectionUrl { get; set; }
-
-    [JsonPropertyName("createdAt")]
-    public DateTimeOffset CreatedAt { get; set; }
-
-    [JsonPropertyName("referenceId")]
-    public string ReferenceId { get; set; } = string.Empty;
-
-    [JsonPropertyName("identifier")]
-    public string Identifier { get; set; } = string.Empty;
-
-    [JsonPropertyName("message")]
-    public string Message { get; set; } = string.Empty;
-}
-
-public class CollectionReq
-{
-    public Guid MerchantId { get; set; }
-    public Guid WalletId { get; set; }
-    public decimal Amount { get; set; }
-    public Guid? CustomerId { get; set; }
-    public string AccountNumber { get; set; } = string.Empty;
-    public string Narration { get; set; } = string.Empty;
-}
-
-public class CollectionResponse
-{
-    public Guid PaymentId { get; set; }
-    public string Status { get; set; } = string.Empty;
-    public decimal Amount { get; set; }
-    public string Message { get; set; } = string.Empty;
-    public string Created { get; set; } = string.Empty;
-}
-
-public static class Phone
-{
-    public static string? ToLipilaFormat(string input)
-    {
-        var digits = new string(input.Where(char.IsDigit).ToArray());
-        if (digits.StartsWith("0")) digits = "260" + digits[1..];
-        return digits.StartsWith("260") && digits.Length == 12 ? digits : null;
     }
 }

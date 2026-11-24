@@ -4,17 +4,10 @@ using Flurl.Http;
 using Microsoft.EntityFrameworkCore;
 using MiniLipila.Data;
 using MiniLipila.Models;
+using MiniLipila.Models.Lipila;
+using MiniLipila.Models.Responses;
 
 namespace MiniLipila.Modules.Endpoints;
-
-public class DisbursementStatusResponse
-{
-    public Guid PaymentId { get; set; }
-    public string OurStatus { get; set; } = string.Empty;
-    public string LipilaStatus { get; set; } = string.Empty;
-    public bool WalletRefunded { get; set; }
-    public string Message { get; set; } = string.Empty;
-}
 
 public class CheckDisbursementEndpoint(AppDbContext db, IConfiguration config)
     : EndpointWithoutRequest<DisbursementStatusResponse>

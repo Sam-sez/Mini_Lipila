@@ -1,15 +1,9 @@
 using FastEndpoints;
 using Microsoft.EntityFrameworkCore;
 using MiniLipila.Data;
+using MiniLipila.Models.Responses;
 
 namespace MiniLipila.Modules.Endpoints;
-
-public class MerchantBalanceResponse
-{
-    public Guid MerchantId { get; set; }
-    public int WalletCount { get; set; }
-    public decimal TotalBalance { get; set; }
-}
 
 public class GetMerchantBalanceEndpoint(AppDbContext db) : EndpointWithoutRequest<MerchantBalanceResponse>
 {

@@ -1,6 +1,7 @@
 using FastEndpoints;
 using Microsoft.EntityFrameworkCore;
 using MiniLipila.Data;
+using MiniLipila.Models.Responses;
 
 namespace MiniLipila.Modules.Endpoints;
 

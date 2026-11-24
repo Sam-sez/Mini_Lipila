@@ -2,26 +2,10 @@ using FastEndpoints;
 using Microsoft.EntityFrameworkCore;
 using MiniLipila.Data;
 using MiniLipila.Models;
+using MiniLipila.Models.Requests;
+using MiniLipila.Models.Responses;
 
 namespace MiniLipila.Modules.Endpoints;
-
-public class CreateCustomerRequest
-{
-    public Guid MerchantId { get; set; }   // comes from the address
-    public string Name { get; set; } = string.Empty;
-    public string PhoneNumber { get; set; } = string.Empty;
-    public string Email { get; set; } = string.Empty;
-}
-
-public class CustomerResponse
-{
-    public Guid Id { get; set; }
-    public Guid MerchantId { get; set; }
-    public string Name { get; set; } = string.Empty;
-    public string PhoneNumber { get; set; } = string.Empty;
-    public string Email { get; set; } = string.Empty;
-    public string Created { get; set; } = string.Empty;
-}
 
 public class CreateCustomerEndpoint(AppDbContext db) : Endpoint<CreateCustomerRequest, CustomerResponse>
 {
