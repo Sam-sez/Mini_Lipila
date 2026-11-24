@@ -31,7 +31,7 @@ if not os.path.exists("MiniLipila.csproj"):
 def find_file(name):
     hits = []
     for root, dirs, files in os.walk("."):
-        dirs[:] = [d for d in dirs if d not in ("bin", "obj", ".git")]
+        dirs[:] = [d for d in dirs if d not in ("bin", "obj") and not d.startswith(".")]
         if name in files:
             hits.append(os.path.join(root, name))
     if len(hits) != 1:
@@ -177,7 +177,7 @@ for p, (text, crlf) in changes.items():
 print("\nSearching all .cs files for any remaining https:// ...")
 left = []
 for root, dirs, files in os.walk("."):
-    dirs[:] = [d for d in dirs if d not in ("bin", "obj", ".git")]
+    dirs[:] = [d for d in dirs if d not in ("bin", "obj") and not d.startswith(".")]
     for fn in files:
         if fn.endswith(".cs"):
             fp = os.path.join(root, fn)
