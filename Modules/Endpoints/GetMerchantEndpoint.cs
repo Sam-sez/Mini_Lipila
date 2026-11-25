@@ -4,6 +4,7 @@ using MiniLipila.Data;
 using MiniLipila.Models;
 using MiniLipila.Models.Requests;
 using MiniLipila.Models.Responses;
+using MiniLipila.Services;
 
 namespace MiniLipila.Modules.Endpoints;
 
@@ -22,6 +23,12 @@ public class GetMerchantEndpoint(AppDbContext db) : Endpoint<GetMerchantReq, Mer
 
     public override async Task HandleAsync(GetMerchantReq req, CancellationToken ct)
     {
+        if (!User.CanAccess(req.Id))
+        {
+            await Send.ForbiddenAsync(ct);
+            return;
+        }
+
         var merchant = await db.Merchants
             .Include(x => x.Wallets)
             .FirstOrDefaultAsync(x => x.Id == req.Id, ct);

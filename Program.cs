@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using System.Text;
 using System.Text.Json.Serialization;
 using FastEndpoints;
@@ -26,7 +27,7 @@ builder.Services
             settings.Version = "v1";
             settings.Description = "MiniLipila API Documentation";
 
-            // the Authorize button: paste the accessToken from login here
+            
             settings.AddAuth("Bearer", new()
             {
                 Type = NSwag.OpenApiSecuritySchemeType.Http,
@@ -88,7 +89,11 @@ builder.Services
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key)),
-            ClockSkew = TimeSpan.Zero   // expire exactly on time
+            ClockSkew = TimeSpan.Zero,   // expire exactly on time
+
+            // pin the claim types so role checks and User identity never depend on defaults
+            RoleClaimType = ClaimTypes.Role,
+            NameClaimType = ClaimTypes.NameIdentifier
         };
     });
 

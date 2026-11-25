@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using MiniLipila.Data;
 using MiniLipila.Models;
 using MiniLipila.Models.Responses;
+using MiniLipila.Services;
 
 namespace MiniLipila.Modules.Endpoints;
 
@@ -22,6 +23,12 @@ public class CreateWalletEndpoint(AppDbContext db) : EndpointWithoutRequest<Wall
     public override async Task HandleAsync(CancellationToken ct)
     {
         var merchantId = Route<Guid>("merchantId");
+
+        if (!User.CanAccess(merchantId))
+        {
+            await Send.ForbiddenAsync(ct);
+            return;
+        }
 
         if (!await db.Merchants.AnyAsync(m => m.Id == merchantId, ct))
         {

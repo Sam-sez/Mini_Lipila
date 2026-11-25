@@ -8,7 +8,6 @@ using MiniLipila.Models;
 using MiniLipila.Models.Lipila;
 using MiniLipila.Models.Requests;
 using MiniLipila.Models.Responses;
-using MiniLipila.Modules;
 using MiniLipila.Services;
 
 namespace MiniLipila.Modules.Endpoints;
@@ -33,6 +32,13 @@ public class InitiateDisbursementEndpoint(
 
     public override async Task HandleAsync(DisbursementReq req, CancellationToken ct)
     {
+        // 0. a merchant user may only pay out from their own merchant, checked before anything else
+        if (!User.CanAccess(req.MerchantId))
+        {
+            await Send.ForbiddenAsync(ct);
+            return;
+        }
+
         // 1. the request was already checked by DisbursementReqValidator
         var phone = Phone.ToLipilaFormat(req.AccountNumber)!;
         var narration = req.Narration.Trim();

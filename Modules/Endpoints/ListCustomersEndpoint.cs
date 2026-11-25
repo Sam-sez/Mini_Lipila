@@ -2,6 +2,7 @@ using FastEndpoints;
 using Microsoft.EntityFrameworkCore;
 using MiniLipila.Data;
 using MiniLipila.Models.Responses;
+using MiniLipila.Services;
 
 namespace MiniLipila.Modules.Endpoints;
 
@@ -21,6 +22,12 @@ public class ListCustomersEndpoint(AppDbContext db) : EndpointWithoutRequest<Lis
     public override async Task HandleAsync(CancellationToken ct)
     {
         var merchantId = Route<Guid>("merchantId");
+
+        if (!User.CanAccess(merchantId))
+        {
+            await Send.ForbiddenAsync(ct);
+            return;
+        }
 
         if (!await db.Merchants.AnyAsync(m => m.Id == merchantId, ct))
         {
@@ -44,6 +51,5 @@ public class ListCustomersEndpoint(AppDbContext db) : EndpointWithoutRequest<Lis
         }).ToList();
 
         await Send.OkAsync(response, ct);
-        
     }
 }

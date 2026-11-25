@@ -7,6 +7,7 @@ using MiniLipila.Data;
 using MiniLipila.Models;
 using MiniLipila.Models.Lipila;
 using MiniLipila.Models.Responses;
+using MiniLipila.Services;
 
 namespace MiniLipila.Modules.Endpoints;
 
@@ -33,6 +34,13 @@ public class CheckDisbursementEndpoint(AppDbContext db, IConfiguration config, I
         if (payment is null)
         {
             await Send.NotFoundAsync(ct);
+            return;
+        }
+
+        // a merchant user may only check their own merchant's payments
+        if (!User.CanAccess(payment.MerchantId))
+        {
+            await Send.ForbiddenAsync(ct);
             return;
         }
 

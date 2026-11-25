@@ -13,10 +13,10 @@ public class ListMerchantsEndpoint(AppDbContext db) : EndpointWithoutRequest<Lis
         Get("/merchants");
         Summary(s =>
         {
-            s.Description = "`this lists all merchants with their wallets`";
+            s.Description = "`this lists all merchants with their wallets. Admin only`";
             s.Summary = "Lists all merchants";
         });
-        AllowAnonymous();
+        Roles(MiniLipila.Models.Roles.Admin);
     }
 
     public override async Task HandleAsync(CancellationToken ct)

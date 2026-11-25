@@ -22,6 +22,10 @@ public class JwtTokenService(IConfiguration config)
             new(ClaimTypes.NameIdentifier, user.Id)
         };
 
+        // the merchant this user runs, so endpoints can check ownership from the token alone
+        if (user.MerchantId is not null)
+            claims.Add(new Claim(MerchantAccess.ClaimType, user.MerchantId.Value.ToString()));
+
         // one claim per role, so the server can check roles from the token alone
         claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
 

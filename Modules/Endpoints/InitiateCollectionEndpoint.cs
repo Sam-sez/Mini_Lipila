@@ -8,6 +8,7 @@ using MiniLipila.Models;
 using MiniLipila.Models.Lipila;
 using MiniLipila.Models.Requests;
 using MiniLipila.Models.Responses;
+using MiniLipila.Services;
 
 namespace MiniLipila.Modules.Endpoints;
 
@@ -27,6 +28,13 @@ public class InitiateCollectionEndpoint(AppDbContext db, IConfiguration config, 
 
     public override async Task HandleAsync(CollectionReq req, CancellationToken ct)
     {
+        // 0. a merchant user may only collect into their own merchant
+        if (!User.CanAccess(req.MerchantId))
+        {
+            await Send.ForbiddenAsync(ct);
+            return;
+        }
+
         var apiKey = config["Lipila:ApiKey"]
                      ?? throw new InvalidOperationException("Lipila:ApiKey is not set");
 

@@ -2,6 +2,7 @@ using FastEndpoints;
 using Microsoft.EntityFrameworkCore;
 using MiniLipila.Data;
 using MiniLipila.Models.Responses;
+using MiniLipila.Services;
 
 namespace MiniLipila.Modules.Endpoints;
 
@@ -12,8 +13,8 @@ public class GetMerchantWalletEndpoint(AppDbContext db) : EndpointWithoutRequest
         Get("/merchants/{merchantId}/wallets/{walletId}");
         Summary(s =>
         {
-            s.Description = "`this fetches the wallet of this merchant`";
-            s.Summary = "Get a specific merchant wallet";
+            s.Description = "`this fetches one wallet under this merchant`";
+            s.Summary = "Fetch a single wallet";
         });
         Roles(MiniLipila.Models.Roles.Merchant, MiniLipila.Models.Roles.Admin);
     }
@@ -23,10 +24,14 @@ public class GetMerchantWalletEndpoint(AppDbContext db) : EndpointWithoutRequest
         var merchantId = Route<Guid>("merchantId");
         var walletId = Route<Guid>("walletId");
 
+        if (!User.CanAccess(merchantId))
+        {
+            await Send.ForbiddenAsync(ct);
+            return;
+        }
+
         var wallet = await db.Wallets
-            .Where(w => w.Id == walletId && w.MerchantId == merchantId)
-            .Select(w => new WalletResponse { Id = w.Id, Balance = w.Balance })
-            .FirstOrDefaultAsync(ct);
+            .FirstOrDefaultAsync(w => w.Id == walletId && w.MerchantId == merchantId, ct);
 
         if (wallet is null)
         {
@@ -34,6 +39,10 @@ public class GetMerchantWalletEndpoint(AppDbContext db) : EndpointWithoutRequest
             return;
         }
 
-        await Send.OkAsync(wallet, ct);
+        await Send.OkAsync(new WalletResponse
+        {
+            Id = wallet.Id,
+            Balance = wallet.Balance
+        }, ct);
     }
 }

@@ -13,10 +13,10 @@ public class CreateMerchantEndpoint(AppDbContext db) : Endpoint<CreateMerchantRe
         Post("/merchants");
         Summary(s =>
         {
-            s.Description = "`this creates a new merchant with one empty wallet`";
+            s.Description = "`this creates a new merchant with one empty wallet. Admin only`";
             s.Summary = "Creates a new merchant";
         });
-        AllowAnonymous();
+        Roles(MiniLipila.Models.Roles.Admin);
     }
 
     public override async Task HandleAsync(CreateMerchantRequest req, CancellationToken ct)
