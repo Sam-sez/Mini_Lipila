@@ -15,7 +15,7 @@ public class GetMerchantBalanceEndpoint(AppDbContext db) : EndpointWithoutReques
             s.Description = "`this fetches the balance of this merchant`";
             s.Summary = "Get a merchants balance";
         });
-        AllowAnonymous();
+        Roles(MiniLipila.Models.Roles.Merchant, MiniLipila.Models.Roles.Admin);
     }
 
     public override async Task HandleAsync(CancellationToken ct)

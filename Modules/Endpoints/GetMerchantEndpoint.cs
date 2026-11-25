@@ -17,7 +17,7 @@ public class GetMerchantEndpoint(AppDbContext db) : Endpoint<GetMerchantReq, Mer
             s.Description = "`this fetches one merchant and its wallets`";
             s.Summary = "Display merchant details";
         });
-        AllowAnonymous();
+        Roles(MiniLipila.Models.Roles.Merchant, MiniLipila.Models.Roles.Admin);
     }
 
     public override async Task HandleAsync(GetMerchantReq req, CancellationToken ct)
@@ -38,6 +38,7 @@ public class GetMerchantEndpoint(AppDbContext db) : Endpoint<GetMerchantReq, Mer
             Name = merchant.Name,
             AccountNumber = merchant.AccountNumber,
             Email = merchant.Email,
+            Type = merchant.Type,
             Wallets = merchant.Wallets.Select(w => new WalletResponse
             {
                 Id = w.Id,

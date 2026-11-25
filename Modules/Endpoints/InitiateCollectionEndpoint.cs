@@ -1,4 +1,3 @@
-using System.Text.Json.Serialization;
 using FastEndpoints;
 using Flurl;
 using Flurl.Http;
@@ -12,7 +11,8 @@ using MiniLipila.Models.Responses;
 
 namespace MiniLipila.Modules.Endpoints;
 
-public class InitiateCollectionEndpoint(AppDbContext db, IConfiguration config, IOptions<LipilaSettings> lipila) : Endpoint<CollectionReq, CollectionResponse>
+public class InitiateCollectionEndpoint(AppDbContext db, IConfiguration config, IOptions<LipilaSettings> lipila)
+    : Endpoint<CollectionReq, CollectionResponse>
 {
     public override void Configure()
     {
@@ -22,78 +22,56 @@ public class InitiateCollectionEndpoint(AppDbContext db, IConfiguration config, 
             s.Description = "`this asks Lipila to collect money from a customer's mobile money into a merchant's wallet`";
             s.Summary = "Start a collection";
         });
-        AllowAnonymous();
+        Roles(MiniLipila.Models.Roles.Merchant, MiniLipila.Models.Roles.Admin);
     }
 
     public override async Task HandleAsync(CollectionReq req, CancellationToken ct)
     {
-        // 1. check the request itself
-        if (req.Amount <= 0)
-            AddError(r => r.Amount, "Amount must be greater than 0");
-
-        string? phone = null;
-        if (req.CustomerId is null)
-        {
-            phone = Phone.ToLipilaFormat(req.AccountNumber);
-            if (phone is null)
-                AddError(r => r.AccountNumber, "Choose a customer, or enter a Zambian number like 0979086825");
-        }
-
-        ThrowIfAnyErrors();
-
         var apiKey = config["Lipila:ApiKey"]
                      ?? throw new InvalidOperationException("Lipila:ApiKey is not set");
 
-        // 2. the merchant must exist
-        var merchant = await db.Merchants
-            .FirstOrDefaultAsync(x => x.Id == req.MerchantId, ct);
-        if (merchant is null)
+        // 1. the wallet must exist AND belong to this merchant (this also proves the merchant exists)
+        var walletExists = await db.Wallets
+            .AnyAsync(w => w.Id == req.WalletId && w.MerchantId == req.MerchantId, ct);
+        if (!walletExists)
         {
             await Send.NotFoundAsync(ct);
             return;
         }
 
-        // 3. the wallet must exist AND belong to this merchant
-        var wallet = await db.Wallets
-            .FirstOrDefaultAsync(x => x.Id == req.WalletId && x.MerchantId == req.MerchantId, ct);
-        if (wallet is null)
-        {
-            await Send.NotFoundAsync(ct);
-            return;
-        }
-
-        // 4. if a customer was chosen, they must belong to this merchant too
+        // 2. look the customer up ONCE, and only if one was chosen
         Customer? customer = null;
         if (req.CustomerId is not null)
         {
             customer = await db.Customers
-                .FirstOrDefaultAsync(c => c.Id == req.CustomerId && c.MerchantId == req.MerchantId, ct);
+                .FirstOrDefaultAsync(c => c.Id == req.CustomerId && c.Merchants.Any(m => m.Id == req.MerchantId), ct);
             if (customer is null)
             {
                 await Send.NotFoundAsync(ct);
                 return;
             }
-            phone = customer.PhoneNumber;
         }
 
-        // 5. save the payment as Pending
+        // 3. the number to charge: the customer's saved number, otherwise the one typed in
+        var accountNumber = customer?.PhoneNumber ?? Phone.ToLipilaFormat(req.AccountNumber)!;
+
+        // 4. save the payment as Pending
         var payment = new Payment
         {
             MerchantId = req.MerchantId,
             WalletId = req.WalletId,
             CustomerId = customer?.Id,
             Amount = req.Amount,
-            AccountNumber = phone!,
+            AccountNumber = accountNumber,
+            Narration = req.Narration.Trim(),
             Status = PaymentStatus.Pending,
-            Narration = string.IsNullOrWhiteSpace(req.Narration)
-                ? $"Payment to {merchant.Name}"
-                : req.Narration,
+            Type = PaymentType.Collection
         };
 
         await db.Payments.AddAsync(payment, ct);
         await db.SaveChangesAsync(ct);
 
-        // 6. send it to Lipila so the customer's phone is asked to approve
+        // 5. send it to Lipila so the customer's phone is asked to approve
         LipilaPaymentResponse result;
         try
         {
@@ -123,7 +101,7 @@ public class InitiateCollectionEndpoint(AppDbContext db, IConfiguration config, 
             return;
         }
 
-        // 7. reply. The status stays Pending until GET /collection/{id}/status settles it.
+        // 6. reply. The status stays Pending until GET /collection/{id}/status settles it.
         await Send.ResponseAsync(new CollectionResponse
         {
             PaymentId = payment.Id,

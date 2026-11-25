@@ -15,7 +15,7 @@ public class ListCustomersEndpoint(AppDbContext db) : EndpointWithoutRequest<Lis
             s.Description = "`this lists the customers of one merchant`";
             s.Summary = "List a merchant's customers";
         });
-        AllowAnonymous();
+        Roles(MiniLipila.Models.Roles.Merchant, MiniLipila.Models.Roles.Admin);
     }
 
     public override async Task HandleAsync(CancellationToken ct)
@@ -29,20 +29,21 @@ public class ListCustomersEndpoint(AppDbContext db) : EndpointWithoutRequest<Lis
         }
 
         var customers = await db.Customers
-            .Where(c => c.MerchantId == merchantId)
+            .Where(c => c.Merchants.Any(m => m.Id == merchantId))
             .OrderBy(c => c.Name)
             .ToListAsync(ct);
 
         var response = customers.Select(c => new CustomerResponse
         {
             Id = c.Id,
-            MerchantId = c.MerchantId,
             Name = c.Name,
             PhoneNumber = c.PhoneNumber,
             Email = c.Email,
+            CustomerType = c.CustomerType,
             Created = c.CreatedAt.ToOffset(TimeSpan.FromHours(2)).ToString("dd MMM yyyy, HH:mm")
         }).ToList();
 
         await Send.OkAsync(response, ct);
+        
     }
 }

@@ -7,5 +7,6 @@ public class LipilaSettings
     public string DisbursementPath { get; set; } = string.Empty;
     public string CollectionStatusPath { get; set; } = string.Empty;
     public string DisbursementStatusPath { get; set; } = string.Empty;
+    public string KycPath { get; set; } = string.Empty;
     public string CallbackUrl { get; set; } = string.Empty;
 }

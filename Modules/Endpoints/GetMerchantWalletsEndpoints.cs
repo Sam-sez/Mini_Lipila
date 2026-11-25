@@ -15,7 +15,7 @@ public class GetMerchantWalletsEndpoint(AppDbContext db) : EndpointWithoutReques
             s.Description = "`this fetches the wallets under this merchant`";
             s.Summary = "Fetch all wallets of merchant";
         });
-        AllowAnonymous();
+        Roles(MiniLipila.Models.Roles.Merchant, MiniLipila.Models.Roles.Admin);
     }
 
     public override async Task HandleAsync(CancellationToken ct)

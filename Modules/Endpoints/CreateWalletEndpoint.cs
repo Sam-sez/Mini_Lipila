@@ -16,7 +16,7 @@ public class CreateWalletEndpoint(AppDbContext db) : EndpointWithoutRequest<Wall
             s.Description = "`this adds one empty wallet to a merchant`";
             s.Summary = "Add a wallet to a merchant";
         });
-        AllowAnonymous();
+        Roles(MiniLipila.Models.Roles.Merchant, MiniLipila.Models.Roles.Admin);
     }
 
     public override async Task HandleAsync(CancellationToken ct)

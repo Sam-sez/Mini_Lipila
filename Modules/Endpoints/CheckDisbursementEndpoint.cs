@@ -21,7 +21,7 @@ public class CheckDisbursementEndpoint(AppDbContext db, IConfiguration config, I
             s.Description = "`this asks Lipila what happened to a payout, updates it, and gives the money back to the wallet once if it failed`";
             s.Summary = "Check a disbursement's status";
         });
-        AllowAnonymous();
+        Roles(MiniLipila.Models.Roles.Merchant, MiniLipila.Models.Roles.Admin);
     }
 
     public override async Task HandleAsync(CancellationToken ct)

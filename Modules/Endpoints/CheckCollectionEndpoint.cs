@@ -21,7 +21,7 @@ public class CheckCollectionEndpoint(AppDbContext db, IConfiguration config, IOp
             s.Description = "`this asks Lipila what happened to a collection, updates it, and credits the wallet once if it succeeded`";
             s.Summary = "Check a collection's status";
         });
-        AllowAnonymous();
+        Roles(MiniLipila.Models.Roles.Merchant, MiniLipila.Models.Roles.Admin);
     }
 
     public override async Task HandleAsync(CancellationToken ct)

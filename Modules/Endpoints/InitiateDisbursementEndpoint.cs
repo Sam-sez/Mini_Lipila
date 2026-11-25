@@ -8,10 +8,16 @@ using MiniLipila.Models;
 using MiniLipila.Models.Lipila;
 using MiniLipila.Models.Requests;
 using MiniLipila.Models.Responses;
+using MiniLipila.Modules;
+using MiniLipila.Services;
 
 namespace MiniLipila.Modules.Endpoints;
 
-public class InitiateDisbursementEndpoint(AppDbContext db, IConfiguration config, IOptions<LipilaSettings> lipila)
+public class InitiateDisbursementEndpoint(
+    AppDbContext db,
+    IConfiguration config,
+    IOptions<LipilaSettings> lipila,
+    CustomerResolver resolver)
     : Endpoint<DisbursementReq, DisbursementResponse>
 {
     public override void Configure()
@@ -22,29 +28,19 @@ public class InitiateDisbursementEndpoint(AppDbContext db, IConfiguration config
             s.Description = "`this takes money out of a merchant's wallet and sends it to any mobile money number through Lipila`";
             s.Summary = "Start a disbursement";
         });
-        AllowAnonymous();
+        Roles(MiniLipila.Models.Roles.Merchant, MiniLipila.Models.Roles.Admin);
     }
 
     public override async Task HandleAsync(DisbursementReq req, CancellationToken ct)
     {
-        // 1. check the request itself
-        if (req.Amount <= 0)
-            AddError(r => r.Amount, "Amount must be greater than 0");
-
-        var phone = Phone.ToLipilaFormat(req.AccountNumber);
-        if (phone is null)
-            AddError(r => r.AccountNumber, "Enter a Zambian number like 0979086825 or 260979086825");
-
+        // 1. the request was already checked by DisbursementReqValidator
+        var phone = Phone.ToLipilaFormat(req.AccountNumber)!;
         var narration = req.Narration.Trim();
-        if (narration.Length is < 3 or > 200)
-            AddError(r => r.Narration, "Narration must be 3 to 200 characters");
-
-        ThrowIfAnyErrors();
 
         var apiKey = config["Lipila:ApiKey"]
                      ?? throw new InvalidOperationException("Lipila:ApiKey is not set");
 
-        // 2. the wallet must exist AND belong to this merchant
+        // 2. the wallet must exist AND belong to this merchant (this also proves the merchant exists)
         var walletExists = await db.Wallets
             .AnyAsync(w => w.Id == req.WalletId && w.MerchantId == req.MerchantId, ct);
         if (!walletExists)
@@ -53,13 +49,32 @@ public class InitiateDisbursementEndpoint(AppDbContext db, IConfiguration config
             return;
         }
 
-        // 3. take the money out and save the payment as Pending, together or not at all
+        // 3. find or create the customer, and link this merchant to them.
+        //    This runs BEFORE any money moves, so a bad number costs nothing.
+        var resolved = await resolver.ResolveAsync(req.MerchantId, phone, ct);
+        if (resolved.Customer is null)
+        {
+            if (resolved.Status == KycStatus.NotFound)
+            {
+                AddError("This number is not registered on mobile money.");
+                await Send.ErrorsAsync(400, ct);
+            }
+            else
+            {
+                AddError("We could not verify this number right now. Please try again.");
+                await Send.ErrorsAsync(502, ct);
+            }
+            return;
+        }
+
+        // 4. take the money out and save the payment as Pending, together or not at all
         var payment = new Payment
         {
             MerchantId = req.MerchantId,
             WalletId = req.WalletId,
+            CustomerId = resolved.Customer.Id,
             Amount = req.Amount,
-            AccountNumber = phone!,
+            AccountNumber = phone,
             Narration = narration,
             Status = PaymentStatus.Pending,
             Type = PaymentType.Disbursement
@@ -84,8 +99,8 @@ public class InitiateDisbursementEndpoint(AppDbContext db, IConfiguration config
             await db.SaveChangesAsync(ct);
             await tx.CommitAsync(ct);
         }
-//lets create a seperate thi who's main purpose is just disbursements and seenwhether it works
-        // 4. send it to Lipila
+
+        // 5. send it to Lipila
         LipilaPaymentResponse result;
         try
         {
@@ -108,7 +123,6 @@ public class InitiateDisbursementEndpoint(AppDbContext db, IConfiguration config
         {
             // Lipila clearly refused it: mark Failed and give the money back, once
             var reason = await ex.GetResponseStringAsync();
-           
 
             await using var tx = await db.Database.BeginTransactionAsync(ct);
 
@@ -140,7 +154,7 @@ public class InitiateDisbursementEndpoint(AppDbContext db, IConfiguration config
             return;
         }
 
-        // 5. reply. The status stays Pending until we check it with Lipila.
+        // 6. reply. The status stays Pending until we check it with Lipila.
         await Send.ResponseAsync(new DisbursementResponse
         {
             PaymentId = payment.Id,

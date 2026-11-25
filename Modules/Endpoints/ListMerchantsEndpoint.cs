@@ -28,6 +28,7 @@ public class ListMerchantsEndpoint(AppDbContext db) : EndpointWithoutRequest<Lis
                 Name = x.Name,
                 AccountNumber = x.AccountNumber,
                 Email = x.Email,
+                Type = x.Type,
                 Wallets = x.Wallets.Select(w => new WalletResponse
                 {
                     Id = w.Id,

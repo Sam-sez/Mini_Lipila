@@ -27,6 +27,7 @@ public class CreateMerchantEndpoint(AppDbContext db) : Endpoint<CreateMerchantRe
             Name = req.Name,
             AccountNumber = req.AccountNumber,
             Email = req.Email,
+            Type = req.Type!.Value, // the validator already rejected null
             Wallets = [new Wallet { Id = Guid.NewGuid(), Balance = 0 }]
         };
 
@@ -39,6 +40,7 @@ public class CreateMerchantEndpoint(AppDbContext db) : Endpoint<CreateMerchantRe
             Name = merchant.Name,
             AccountNumber = merchant.AccountNumber,
             Email = merchant.Email,
+            Type = merchant.Type,
             Wallets = merchant.Wallets
                 .Select(w => new WalletResponse { Id = w.Id, Balance = w.Balance })
                 .ToList()

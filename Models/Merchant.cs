@@ -1,7 +1,8 @@
+using PostgresEnumExtension;
 
 namespace MiniLipila.Models;
 
-public class Merchant: BaseEntity
+public class Merchant : BaseEntity
 {
     public string Name { get; set; } = string.Empty;
     public string AccountNumber { get; set; } = string.Empty;
@@ -9,4 +10,13 @@ public class Merchant: BaseEntity
 
     public List<Wallet> Wallets { get; set; } = new();
     public List<Customer> Customers { get; set; } = new();
+    
+    public MerchantType Type { get; set; }
+}
+
+[PostgresEnum]
+public enum MerchantType
+{
+    SoleProprietor,
+    Partnership
 }
