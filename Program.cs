@@ -109,6 +109,8 @@ var app = builder.Build();
 // Make sure the three roles (and the first admin) exist before the app takes requests
 using (var scope = app.Services.CreateScope())
 {
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    await db.Database.MigrateAsync();   // create/update tables first
     await RoleSeeder.SeedAsync(scope.ServiceProvider);
 }
 
